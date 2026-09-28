@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GenerationError, UsageError } from '../src/errors.js';
-import { FixtureProvider, OpenAICompatibleProvider, parseGeneratedReadme, README_RESPONSE_SCHEMA, resolveProviderConfig } from '../src/generator.js';
+import { FixtureProvider, isCheckoutInstall, OpenAICompatibleProvider, parseGeneratedReadme, README_RESPONSE_SCHEMA, resolveProviderConfig } from '../src/generator.js';
 import { STYLE_IDS } from '../src/styles.js';
 import { briefFor, fakeSecrets, json, loadFixture } from './helpers.js';
 
@@ -29,6 +29,17 @@ describe('resolveProviderConfig', () => {
   });
 });
 
+describe('isCheckoutInstall', () => {
+  it.each(['npm install', 'npm ci', 'npm ci --ignore-scripts', 'pnpm install --frozen-lockfile', 'yarn', 'uv sync', 'poetry install --no-root', 'pip install -e .', 'pip install -e ".[dev]"', 'pip install -r requirements-dev.txt', 'bundle install'])(
+    'treats %j as a checkout install',
+    (cmd) => expect(isCheckoutInstall(cmd)).toBe(true),
+  );
+  it.each(['npm install is-plain-obj', 'npm install --global @acme/widget', 'npm i -g foo', 'pip install requests', 'pnpm add zod', 'cargo install ripgrep'])(
+    'treats %j as a user install',
+    (cmd) => expect(isCheckoutInstall(cmd)).toBe(false),
+  );
+});
+
 describe('FixtureProvider', () => {
   it.each(STYLE_IDS)('is deterministic and non-empty for %s', async (style) => {
     const brief = await briefFor(loadFixture('widget'), style);
@@ -38,6 +49,15 @@ describe('FixtureProvider', () => {
     expect(a).toEqual(b);
     expect(a.title).toBe('widget');
     expect(a.sections.length).toBeGreaterThan(1);
+  });
+
+  it('puts checkout installs under Development when a user install is documented', async () => {
+    const brief = await briefFor(loadFixture('widget'));
+    const out = await new FixtureProvider().generateReadme(brief, 'professional');
+    const section = (h: string) => out.sections.find((x) => x.heading === h)?.body ?? '';
+    expect(section('Installation')).toContain('npm install --global @acme/widget');
+    expect(section('Installation')).not.toMatch(/^npm install$/m);
+    expect(section('Development')).toMatch(/^npm install$/m);
   });
 
   it('styles differ in shape', async () => {

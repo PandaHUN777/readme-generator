@@ -1,17 +1,40 @@
 {
   "name": "readme-gen",
   "version": "0.1.0",
-  "description": "Generate a polished, evidence-backed README.md for a public GitHub repository, in the style you choose.",
-  "type": "module",
+  "description": "Turn any public GitHub repo into a polished, evidence-backed README draft in one command. Professional, trendy, minimalist or comprehensive, with every command, link and badge traced to the source.",
+  "keywords": [
+    "readme",
+    "readme-generator",
+    "cli",
+    "github",
+    "documentation",
+    "markdown",
+    "llm",
+    "ai",
+    "developer-tools",
+    "typescript"
+  ],
+  "homepage": "https://github.com/SM260845/readme-gen#readme",
+  "bugs": {
+    "url": "https://github.com/SM260845/readme-gen/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SM260845/readme-gen.git"
+  },
   "license": "MIT",
+  "author": "Harry White (https://github.com/SM260845)",
+  "type": "module",
   "bin": {
     "readme-gen": "bin/readme-gen.js"
   },
   "files": [
     "bin",
     "dist",
+    "!dist/**/*.map",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=22"
@@ -22,15 +45,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm test"
   },
-  "keywords": [
-    "readme",
-    "github",
-    "cli",
-    "documentation",
-    "llm"
-  ],
   "dependencies": {
     "@inquirer/prompts": "^7.10.1",
     "commander": "^14.0.3"

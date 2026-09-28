@@ -110,9 +110,14 @@ export class FixtureProvider implements ReadmeProvider {
     const description = r.description ?? brief.facts.find((f) => f.key === 'package-description')?.statement ?? null;
     const byPurpose = (...p: CommandHint['purpose'][]) => brief.commands.filter((c) => p.includes(c.purpose));
     const evidenceFirst = (cmds: CommandHint[]) => [...cmds.filter((c) => c.confidence === 'evidence'), ...cmds.filter((c) => c.confidence === 'inferred')];
-    const install = evidenceFirst(byPurpose('install'));
+    const allInstall = evidenceFirst(byPurpose('install'));
+    // Installing dependencies inside a checkout (e.g. `npm install`) is a development step when the
+    // project also documents how users install it (e.g. `npm install <name>`).
+    const userInstall = allInstall.filter((c) => !isCheckoutInstall(c.command) && c.confidence === 'evidence');
+    const install = userInstall.length ? userInstall : allInstall;
+    const setup = userInstall.length ? allInstall.filter((c) => isCheckoutInstall(c.command) && c.confidence === 'evidence') : [];
     const usage = byPurpose('usage', 'run').filter((c) => c.confidence === 'evidence');
-    const dev = byPurpose('build', 'test', 'lint', 'dev').filter((c) => c.confidence === 'evidence');
+    const dev = [...setup, ...byPurpose('build', 'test', 'lint', 'dev').filter((c) => c.confidence === 'evidence')];
     const hasPath = (p: string) => brief.paths.includes(p);
     const licenseFile = brief.paths.find((p) => /^(licen[cs]e|copying)(\.[a-z]+)?$/i.test(p));
     const contributing = brief.paths.find((p) => /^(\.github\/)?contributing(\.md)?$/i.test(p));
@@ -190,6 +195,17 @@ export class FixtureProvider implements ReadmeProvider {
     sections.push(...body);
     return { title: r.name, sections, warnings };
   }
+}
+
+const CHECKOUT_INSTALL_RE =
+  /^(?:(?:npm|pnpm|yarn|bun) (?:install|i|ci)|yarn|uv sync|poetry install|bundle install|pip3? install (?:-e |--editable )?["']?\.(?:\[[\w,-]+\])?["']?|pip3? install -r \S+)(?: --?[\w-]+(?:=\S+)?)*$/;
+
+/**
+ * True for commands that install dependencies inside a checkout (optionally with flags only),
+ * e.g. `npm ci --ignore-scripts` or `pip install -e ".[dev]"`, but not `npm install <package>`.
+ */
+export function isCheckoutInstall(command: string): boolean {
+  return CHECKOUT_INSTALL_RE.test(command.trim().replace(/\s+/g, ' '));
 }
 
 export function slugify(heading: string): string {
