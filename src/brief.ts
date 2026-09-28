@@ -247,15 +247,16 @@ export function buildBrief(input: BriefInput): ProjectBrief {
   }
   const rakefile = text('Rakefile');
   if (rakefile !== undefined) {
-    const tasks = [...rakefile.matchAll(/^[ \t]*task[ \t]+(?::([A-Za-z0-9_-]+)|([A-Za-z0-9_-]+):)/gm)]
-      .map((m) => (m[1] ?? m[2]) as string);
-    for (const task of [...new Set(tasks)].slice(0, 12)) {
-      addCommand({ command: `bundle exec rake ${task}`, purpose: purposeForScript(task), evidence: ['Rakefile'], confidence: 'evidence' });
+    const rake = has('Gemfile') ? 'bundle exec rake' : 'rake';
+    for (const task of rakeTasks(rakefile).slice(0, 12)) {
+      addCommand({ command: `${rake} ${task}`, purpose: purposeForScript(task), evidence: ['Rakefile'], confidence: 'evidence' });
     }
   }
   for (const gemspec of inventory.paths.filter((p) => !p.includes('/') && /\.gemspec$/i.test(p))) {
     const content = text(gemspec);
-    const name = content?.match(/^[ \t]*[A-Za-z_]\w*\.name[ \t]*=[ \t]*["']([^"']+)["']/m)?.[1];
+    const name =
+      content?.match(/^[ \t]*[A-Za-z_]\w*\.name[ \t]*=[ \t]*["']([^"']+)["']/m)?.[1] ??
+      content?.match(/Gem::Specification\.new[ \t(]+["']([^"']+)["']/)?.[1];
     if (!name) continue;
     facts.push({ key: 'ruby-gem-name', statement: `Ruby gem name: ${name}`, evidence: [gemspec] });
     const command = `gem install ${name}`;
@@ -363,6 +364,36 @@ function runScript(pm: string, name: string): string {
   if (pm === 'npm') return `npm run ${name}`;
   if (pm === 'bun') return `bun run ${name}`;
   return `${pm} ${name}`;
+}
+
+/**
+ * Task names declared in a Rakefile, qualified with their enclosing `namespace` blocks
+ * (e.g. `namespace :db do; task :migrate; end` yields `db:migrate`). Namespaces are tracked
+ * by indentation: a block ends at an `end` aligned with its `namespace` line, or when a
+ * declaration appears at or left of that indentation.
+ */
+export function rakeTasks(rakefile: string): string[] {
+  const stack: { name: string; indent: number }[] = [];
+  const tasks: string[] = [];
+  const name = (m: RegExpMatchArray, from: number) => m.slice(from, from + 3).find((g) => g !== undefined) as string;
+  for (const line of rakefile.split(/\r?\n/)) {
+    const indent = /^[ \t]*/.exec(line)?.[0].length ?? 0;
+    if (/^[ \t]*end\b/.test(line)) {
+      if (stack.length && stack[stack.length - 1]!.indent === indent) stack.pop();
+      continue;
+    }
+    const ns = line.match(/^[ \t]*namespace[ \t(]+(?::([A-Za-z0-9_]+)|:?["']([A-Za-z0-9_:.-]+)["']|([A-Za-z0-9_]+):)[ \t)]*(?:do\b|\{)/);
+    const task = line.match(/^[ \t]*task[ \t(]+(?::([A-Za-z0-9_]+[?!]?)|:?["']([A-Za-z0-9_:.-]+)["']|([A-Za-z0-9_]+):(?!:))/);
+    if (!ns && !task) continue;
+    while (stack.length && stack[stack.length - 1]!.indent >= indent) stack.pop();
+    if (ns) {
+      // A one-line `namespace :x { ... }` opens and closes on the same line.
+      if (!/(?:\}|\bend)\s*$/.test(line)) stack.push({ name: name(ns, 1), indent });
+      continue;
+    }
+    tasks.push([...stack.map((s) => s.name), name(task!, 1)].join(':'));
+  }
+  return [...new Set(tasks)];
 }
 
 function purposeForScript(name: string): CommandPurpose {

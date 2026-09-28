@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractDocCommands } from '../src/brief.js';
+import { extractDocCommands, rakeTasks } from '../src/brief.js';
 import { briefFor, fakeSecrets, loadFixture } from './helpers.js';
 
 describe('buildBrief', () => {
@@ -77,6 +77,56 @@ describe('buildBrief', () => {
     expect(brief.files.find((file) => file.path === 'sample.gemspec')?.category).toBe('manifest');
     expect(brief.files.some((file) => file.path === 'nested/ignored.gemspec')).toBe(false);
     expect(brief.facts.some((fact) => fact.statement.includes('nested-gem'))).toBe(false);
+  });
+
+  it('qualifies namespaced Rake tasks and uses plain rake without a Gemfile', async () => {
+    const fx = loadFixture('widget', {
+      'package.json': null,
+      'package-lock.json': null,
+      'Rakefile': [
+        'task default: :test',
+        'namespace :db do',
+        '  desc "Migrate"',
+        '  task migrate: :environment do',
+        '    puts "migrating"',
+        '  end',
+        'end',
+        'task :lint',
+      ].join('\n'),
+      'widget.gemspec': "version = '1.0'\nGem::Specification.new 'widget-rb', version do |s|\n  s.summary = 'x'\nend\n",
+    });
+    const brief = await briefFor(fx);
+    const commands = brief.commands.map((item) => item.command);
+
+    expect(commands).toContain('rake db:migrate');
+    expect(commands).toContain('rake lint');
+    expect(commands).not.toContain('rake migrate');
+    expect(commands.some((c) => c.startsWith('bundle '))).toBe(false);
+    expect(brief.facts).toContainEqual({ key: 'ruby-gem-name', statement: 'Ruby gem name: widget-rb', evidence: ['widget.gemspec'] });
+  });
+
+  it('parses Rake task names across nested and closed namespaces', () => {
+    const rakefile = [
+      'task :build',
+      'namespace :test do',
+      '  task :coverage do',
+      '  end',
+      '  namespace "db" do',
+      '    task reset: []',
+      '  end',
+      '  task(:units)',
+      'end',
+      'namespace(:docs) { task :api }',
+      "task 'doc:api'",
+      'if defined?(Gem)',
+      '  namespace :release do',
+      '    task :watch do',
+      '    end',
+      '  end',
+      '  task all: %w[a b]',
+      'end',
+    ].join('\n');
+    expect(rakeTasks(rakefile)).toEqual(['build', 'test:coverage', 'test:db:reset', 'test:units', 'doc:api', 'release:watch', 'all']);
   });
 
   it('excludes .env files and binaries from brief files', async () => {
