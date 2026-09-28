@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- repo2readme is published to npm: install with `npm i -g repo2readme` (or `npx repo2readme`). The release tarball remains an alternative.
+
 ## [0.2.0] - 2026-09-28
 
 ### Changed
