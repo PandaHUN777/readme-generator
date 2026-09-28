@@ -40,6 +40,15 @@ describe('FixtureProvider', () => {
     expect(a.sections.length).toBeGreaterThan(1);
   });
 
+  it('puts checkout installs under Development when a user install is documented', async () => {
+    const brief = await briefFor(loadFixture('widget'));
+    const out = await new FixtureProvider().generateReadme(brief, 'professional');
+    const section = (h: string) => out.sections.find((x) => x.heading === h)?.body ?? '';
+    expect(section('Installation')).toContain('npm install --global @acme/widget');
+    expect(section('Installation')).not.toMatch(/^npm install$/m);
+    expect(section('Development')).toMatch(/^npm install$/m);
+  });
+
   it('styles differ in shape', async () => {
     const brief = await briefFor(loadFixture('widget'));
     const p = new FixtureProvider();
