@@ -240,6 +240,29 @@ export function buildBrief(input: BriefInput): ProjectBrief {
     }
   }
 
+  // --- Ruby
+  if (has('Gemfile')) {
+    const evidence = ['Gemfile', ...(has('Gemfile.lock') ? ['Gemfile.lock'] : [])];
+    addCommand({ command: 'bundle install', purpose: 'install', evidence, confidence: 'evidence' });
+  }
+  const rakefile = text('Rakefile');
+  if (rakefile !== undefined) {
+    const tasks = [...rakefile.matchAll(/^[ \t]*task[ \t]+(?::([A-Za-z0-9_-]+)|([A-Za-z0-9_-]+):)/gm)]
+      .map((m) => (m[1] ?? m[2]) as string);
+    for (const task of [...new Set(tasks)].slice(0, 12)) {
+      addCommand({ command: `bundle exec rake ${task}`, purpose: purposeForScript(task), evidence: ['Rakefile'], confidence: 'evidence' });
+    }
+  }
+  for (const gemspec of inventory.paths.filter((p) => !p.includes('/') && /\.gemspec$/i.test(p))) {
+    const content = text(gemspec);
+    const name = content?.match(/^[ \t]*[A-Za-z_]\w*\.name[ \t]*=[ \t]*["']([^"']+)["']/m)?.[1];
+    if (!name) continue;
+    facts.push({ key: 'ruby-gem-name', statement: `Ruby gem name: ${name}`, evidence: [gemspec] });
+    const command = `gem install ${name}`;
+    addCommand({ command, purpose: 'install', evidence: [gemspec], confidence: 'inferred' });
+    publishChecks.push({ command, note: `Whether "${name}" is published to RubyGems was not verified.` });
+  }
+
   // --- Make / just
   for (const mk of ['Makefile', 'makefile', 'GNUmakefile']) {
     const content = text(mk);

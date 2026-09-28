@@ -40,6 +40,45 @@ describe('buildBrief', () => {
     expect(brief.warnings.some((w) => /archived/.test(w))).toBe(true);
   });
 
+  it('detects Ruby install, rake, and gem commands from a small fixture', async () => {
+    const fx = loadFixture('widget', {
+      'package.json': null,
+      'package-lock.json': null,
+      'src/index.ts': null,
+      'docs/configuration.md': null,
+      'README.md': null,
+      'LICENSE': null,
+      'CONTRIBUTING.md': null,
+      '.env.example': null,
+      '.env': null,
+      'Gemfile': 'source \'https://rubygems.org\'\n',
+      'Gemfile.lock': 'GEM\n  specs:\n',
+      'Rakefile': 'task :test => :environment\ntask build: :compile\n',
+      'sample.gemspec': 'Gem::Specification.new do |spec|\n  spec.name = \'sample-gem\'\nend\n',
+      'nested/ignored.gemspec': 'Gem::Specification.new do |spec|\n  spec.name = \'nested-gem\'\nend\n',
+    });
+    const brief = await briefFor(fx);
+    const command = (value: string) => brief.commands.find((item) => item.command === value);
+
+    expect(command('bundle install')).toMatchObject({
+      confidence: 'evidence',
+      purpose: 'install',
+      evidence: ['Gemfile', 'Gemfile.lock'],
+    });
+    expect(command('bundle exec rake test')).toMatchObject({ confidence: 'evidence', purpose: 'test', evidence: ['Rakefile'] });
+    expect(command('bundle exec rake build')).toMatchObject({ confidence: 'evidence', purpose: 'build', evidence: ['Rakefile'] });
+    expect(brief.facts).toContainEqual({
+      key: 'ruby-gem-name',
+      statement: 'Ruby gem name: sample-gem',
+      evidence: ['sample.gemspec'],
+    });
+    expect(command('gem install sample-gem')).toMatchObject({ confidence: 'inferred', purpose: 'install', evidence: ['sample.gemspec'] });
+    expect(brief.unknowns).toContain('Whether "sample-gem" is published to RubyGems was not verified.');
+    expect(brief.files.find((file) => file.path === 'sample.gemspec')?.category).toBe('manifest');
+    expect(brief.files.some((file) => file.path === 'nested/ignored.gemspec')).toBe(false);
+    expect(brief.facts.some((fact) => fact.statement.includes('nested-gem'))).toBe(false);
+  });
+
   it('excludes .env files and binaries from brief files', async () => {
     const brief = await briefFor(loadFixture('widget'));
     const paths = brief.files.map((f) => f.path);

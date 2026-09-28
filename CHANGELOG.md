@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+- Detect Ruby install, Rake task, and gem-install commands from repository manifests.
+
 ## [0.1.0] - 2026-09-28
 
 ### Added
