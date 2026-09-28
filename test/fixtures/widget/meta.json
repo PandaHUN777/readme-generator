@@ -1,0 +1,32 @@
+{
+  "owner": "acme",
+  "repo": "widget",
+  "repository": {
+    "full_name": "acme/widget",
+    "html_url": "https://github.com/acme/widget",
+    "description": "Render configurable widgets from the command line.",
+    "homepage": "https://widget.acme.dev",
+    "default_branch": "main",
+    "topics": ["cli", "widgets"],
+    "license": { "spdx_id": "MIT", "name": "MIT License" },
+    "private": false,
+    "archived": false,
+    "fork": false,
+    "size": 120,
+    "stargazers_count": 42,
+    "language": "TypeScript"
+  },
+  "languages": { "TypeScript": 12000, "Shell": 300 },
+  "releases": [
+    { "tag_name": "v1.2.0", "name": "1.2.0", "html_url": "https://github.com/acme/widget/releases/tag/v1.2.0", "draft": false, "prerelease": false }
+  ],
+  "extraTree": [
+    { "path": "node_modules", "type": "tree" },
+    { "path": "node_modules/left-pad/index.js", "type": "blob", "size": 200 },
+    { "path": "vendor/lib.js", "type": "blob", "size": 500 },
+    { "path": "assets/logo.png", "type": "blob", "size": 20480 },
+    { "path": "keys/server.pem", "type": "blob", "size": 1700 },
+    { "path": "docs/huge-reference.md", "type": "blob", "size": 900000 },
+    { "path": "dist/index.js", "type": "blob", "size": 4000 }
+  ]
+}

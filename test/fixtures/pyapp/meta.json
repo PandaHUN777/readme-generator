@@ -1,0 +1,22 @@
+{
+  "owner": "someone",
+  "repo": "pyapp",
+  "repository": {
+    "full_name": "someone/pyapp",
+    "html_url": "https://github.com/someone/pyapp",
+    "description": null,
+    "homepage": "",
+    "default_branch": "trunk",
+    "topics": [],
+    "license": null,
+    "private": false,
+    "archived": true,
+    "fork": false,
+    "size": 10,
+    "stargazers_count": 0,
+    "language": "Python"
+  },
+  "languages": { "Python": 4000 },
+  "releases": [],
+  "extraTree": []
+}
