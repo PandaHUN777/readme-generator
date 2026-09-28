@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GenerationError, UsageError } from '../src/errors.js';
-import { FixtureProvider, OpenAICompatibleProvider, parseGeneratedReadme, README_RESPONSE_SCHEMA, resolveProviderConfig } from '../src/generator.js';
+import { FixtureProvider, isCheckoutInstall, OpenAICompatibleProvider, parseGeneratedReadme, README_RESPONSE_SCHEMA, resolveProviderConfig } from '../src/generator.js';
 import { STYLE_IDS } from '../src/styles.js';
 import { briefFor, fakeSecrets, json, loadFixture } from './helpers.js';
 
@@ -27,6 +27,17 @@ describe('resolveProviderConfig', () => {
     expect(() => resolveProviderConfig({ READMEGEN_API_KEY: 'k', READMEGEN_BASE_URL: 'http://evil.example.com' })).toThrow(/https/);
     expect(resolveProviderConfig({ READMEGEN_API_KEY: 'k', READMEGEN_BASE_URL: 'http://localhost:8080/v1' }).baseUrl).toBe('http://localhost:8080/v1');
   });
+});
+
+describe('isCheckoutInstall', () => {
+  it.each(['npm install', 'npm ci', 'npm ci --ignore-scripts', 'pnpm install --frozen-lockfile', 'yarn', 'uv sync', 'poetry install --no-root', 'pip install -e .', 'pip install -e ".[dev]"', 'pip install -r requirements-dev.txt', 'bundle install'])(
+    'treats %j as a checkout install',
+    (cmd) => expect(isCheckoutInstall(cmd)).toBe(true),
+  );
+  it.each(['npm install is-plain-obj', 'npm install --global @acme/widget', 'npm i -g foo', 'pip install requests', 'pnpm add zod', 'cargo install ripgrep'])(
+    'treats %j as a user install',
+    (cmd) => expect(isCheckoutInstall(cmd)).toBe(false),
+  );
 });
 
 describe('FixtureProvider', () => {

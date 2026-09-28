@@ -197,10 +197,15 @@ export class FixtureProvider implements ReadmeProvider {
   }
 }
 
-const CHECKOUT_INSTALL_RE = /^(?:(?:npm|pnpm|yarn|bun) (?:install|ci)|yarn|uv sync|poetry install|pip install (?:-e )?\.|pip install -r \S+|bundle install)$/;
+const CHECKOUT_INSTALL_RE =
+  /^(?:(?:npm|pnpm|yarn|bun) (?:install|i|ci)|yarn|uv sync|poetry install|bundle install|pip3? install (?:-e |--editable )?["']?\.(?:\[[\w,-]+\])?["']?|pip3? install -r \S+)(?: --?[\w-]+(?:=\S+)?)*$/;
 
+/**
+ * True for commands that install dependencies inside a checkout (optionally with flags only),
+ * e.g. `npm ci --ignore-scripts` or `pip install -e ".[dev]"`, but not `npm install <package>`.
+ */
 export function isCheckoutInstall(command: string): boolean {
-  return CHECKOUT_INSTALL_RE.test(command.trim());
+  return CHECKOUT_INSTALL_RE.test(command.trim().replace(/\s+/g, ' '));
 }
 
 export function slugify(heading: string): string {

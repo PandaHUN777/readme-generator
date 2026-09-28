@@ -9,7 +9,9 @@ let cli;
 try {
   cli = await import('../dist/cli.js');
 } catch (err) {
-  if (err && err.code === 'ERR_MODULE_NOT_FOUND') {
+  // Only a missing dist/cli.js means "not built"; other missing modules are real errors.
+  const missingDist = err && err.code === 'ERR_MODULE_NOT_FOUND' && /[\\/]dist[\\/]cli\.js['"]?(\s|$)/.test(String(err.message));
+  if (missingDist) {
     console.error('readme-gen: dist/ is missing. Run `npm run build` in the readme-gen checkout first.');
     process.exit(1);
   }
