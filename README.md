@@ -218,7 +218,11 @@ Tests live in `test/`, and the fixture repositories in `test/fixtures/`. A hidde
 node bin/readme-gen.js https://github.com/sindresorhus/is-plain-obj --style comprehensive --dry-run --provider fixture --verbose
 ```
 
-CI runs lint, typecheck, test and build on Node 22 (`.github/workflows/ci.yml`).
+CI runs lint, typecheck, test and build on Node 22. The workflow definition is in [docs/ci-workflow.yml](docs/ci-workflow.yml). To enable it, copy it to `.github/workflows/ci.yml` (pushing workflow files requires a token with the `workflow` scope):
+
+```sh
+mkdir -p .github/workflows && cp docs/ci-workflow.yml .github/workflows/ci.yml
+```
 
 ## Limitations
 
