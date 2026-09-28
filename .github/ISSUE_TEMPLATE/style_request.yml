@@ -1,0 +1,28 @@
+name: Style request
+description: Propose a new writing style or a tweak to an existing one
+labels: ["style"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Style name
+      placeholder: e.g. academic, enterprise, library-reference, game-mod
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What should it look like?
+      description: Tone, sections, decoration level, and the kind of project it's for.
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example READMEs in this style
+      description: Links to real READMEs you'd like it to resemble.
+  - type: textarea
+    id: instruction
+    attributes:
+      label: Draft style instruction (optional)
+      description: The instruction sent to the model; see `src/styles.ts` for existing ones.

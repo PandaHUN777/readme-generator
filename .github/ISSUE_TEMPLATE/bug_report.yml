@@ -1,0 +1,55 @@
+name: Bug report
+description: readme-gen crashed, errored unhelpfully, or produced a wrong README
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **redact any tokens or API keys** before pasting output.
+  - type: input
+    id: repo
+    attributes:
+      label: Repository URL you ran it on
+      placeholder: https://github.com/owner/repo
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      placeholder: readme-gen https://github.com/owner/repo --style professional --dry-run
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong?
+      options:
+        - Crash or unexpected error
+        - Unhelpful or wrong error message
+        - Invented command, link, badge or license (hallucination)
+        - Missed an obvious fact, command or file
+        - A file that should be excluded was read
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened and what you expected
+      description: Paste the relevant part of the README and/or the CLI summary.
+      render: markdown
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: Provider and model
+      placeholder: "xAI grok-4.6 / OpenAI gpt-4.1-mini / fixture"
+  - type: input
+    id: version
+    attributes:
+      label: readme-gen version and Node.js version
+      placeholder: "readme-gen 0.1.0, Node 22.x (readme-gen --version; node -v)"
+    validations:
+      required: true
