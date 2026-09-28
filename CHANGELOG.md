@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Detect Ruby install, Rake task, and gem-install commands from repository manifests.
 
+### Changed
+
+- repo2readme is published to npm: install with `npm i -g repo2readme` (or `npx repo2readme`). The release tarball remains an alternative.
+
 ## [0.2.0] - 2026-09-28
 
 ### Changed

@@ -3,6 +3,7 @@
 **Turn any public GitHub repository into a polished README draft in one command, with every command, link, badge and license claim traced to the source or flagged for review.**
 
 [![CI](https://github.com/SM260845/repo2readme/actions/workflows/ci.yml/badge.svg)](https://github.com/SM260845/repo2readme/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/repo2readme)](https://www.npmjs.com/package/repo2readme)
 [![License: MIT](https://img.shields.io/github/license/SM260845/repo2readme)](LICENSE)
 ![Node.js 22+](https://img.shields.io/badge/node-%3E%3D22-339933)
 
@@ -92,13 +93,19 @@ Released under the MIT license. See [license](license).
 
 ## Install
 
-From npm (once published; see [#5](https://github.com/SM260845/repo2readme/issues/5)):
+From [npm](https://www.npmjs.com/package/repo2readme):
 
 ```sh
-npm install --global repo2readme
+npm i -g repo2readme
 ```
 
-Until then, install the prebuilt tarball attached to the [v0.2.0 release](https://github.com/SM260845/repo2readme/releases/tag/v0.2.0):
+Or run it once without installing:
+
+```sh
+npx repo2readme https://github.com/acme/widget
+```
+
+Alternatively, install the prebuilt tarball attached to the [v0.2.0 release](https://github.com/SM260845/repo2readme/releases/tag/v0.2.0):
 
 ```sh
 npm install --global https://github.com/SM260845/repo2readme/releases/download/v0.2.0/repo2readme-0.2.0.tgz
@@ -113,7 +120,7 @@ npm install        # also builds dist/ via the prepare script
 npm link           # puts `repo2readme` on your PATH
 ```
 
-Either way you get the `repo2readme` command.
+Any of these gives you the `repo2readme` command.
 
 > [!NOTE]
 > `npm install --global github:SM260845/repo2readme` doesn't work, because npm's global git installs don't build TypeScript.
@@ -346,7 +353,6 @@ repo2readme is intentionally narrow for now: public repositories only, and outpu
 - More ecosystem detectors: [Deno tasks #1](https://github.com/SM260845/repo2readme/issues/1), [Ruby #2](https://github.com/SM260845/repo2readme/issues/2)
 - [Snapshot tests for every style #3](https://github.com/SM260845/repo2readme/issues/3)
 - [Local models (Ollama, LM Studio) #4](https://github.com/SM260845/repo2readme/issues/4)
-- [npm distribution #5](https://github.com/SM260845/repo2readme/issues/5): the publish workflow is ready and waits on an `NPM_TOKEN` secret
 
 Later: [opt-in private repos #6](https://github.com/SM260845/repo2readme/issues/6), [draft-PR mode #7](https://github.com/SM260845/repo2readme/issues/7), [localized READMEs #8](https://github.com/SM260845/repo2readme/issues/8).
 
